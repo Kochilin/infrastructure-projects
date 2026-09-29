@@ -1,71 +1,67 @@
-# Homelab logical architecture
+# Homelab architecture (sanitized)
 
-Sanitized product/role diagram. The zones below show **segmentation intent**, not actual VLAN IDs, switch ports, hostnames, addressing, or firewall rule order.
+Logical layout only. No private addresses, hostnames, serials, or real configs.
 
 ```mermaid
 flowchart TB
-  NET[Internet / ISP] --> FW[OPNsense firewall]
-  FW --> SW[Cisco SG350 managed switching]
-  SW --> AP[UniFi Wi-Fi]
-
-  subgraph zones [Logical network zones]
-    MGMT[Management]
-    TRUST[Trusted devices]
-    IOT[IoT]
-    GUEST[Guest]
-    LAB[Homelab workloads]
+  subgraph edge [Edge]
+    WAN[Internet]
+    FW[OPNsense + Unbound]
+    TS[Tailscale]
   end
 
-  SW --- MGMT
-  SW --- TRUST
-  SW --- IOT
-  AP --- GUEST
-  SW --- LAB
-
-  subgraph infra [Infrastructure services]
-    UB[Unbound DNS]
-    TS[Tailscale / remote administration]
-    NPM[Nginx Proxy Manager]
+  subgraph lan [LAN]
+    SW[Cisco SG350]
+    WIFI[UniFi]
   end
-  FW --- UB
-  LAB --- NPM
-  TS -. controlled remote path .-> LAB
 
   subgraph compute [Compute]
     PVE[Proxmox VE]
-    HA[Home Assistant OS VM]
-    LX[LXC services]
-    DOCKER[Separate bare-metal Docker host]
-    PLEX[Plex / application containers]
+    HAVM[Home Assistant OS VM]
+    NPMLXC[Nginx Proxy Manager LXC]
+    DOCKER[Bare-metal Docker]
+    PLEX[Plex]
   end
-  LAB --> PVE
-  LAB --> DOCKER
-  PVE --> HA
-  PVE --> LX
-  LX --> NPM
-  DOCKER --> PLEX
 
-  subgraph recovery [Storage and recovery]
-    OMV[OpenMediaVault / ZFS]
+  subgraph storage [Storage and backup]
+    OMV[OpenMediaVault + ZFS]
     PBS[Proxmox Backup Server]
-    RESTIC[Restic backups]
   end
-  PVE -->|VM and LXC backups| PBS
-  DOCKER -->|Application data backups| RESTIC
-  OMV -. shared storage / mounts .-> PVE
-  OMV -. media / data mounts .-> DOCKER
 
-  UPS[NUT / UPS monitoring] -. status .-> PVE
-  UPS -. status .-> DOCKER
-  UPS -. status .-> OMV
+  subgraph power [Power]
+    NUT[NUT on hosts]
+  end
+
+  WAN --> FW
+  FW --> SW
+  SW --> WIFI
+  SW --> PVE
+  SW --> DOCKER
+  SW --> OMV
+  TS -.-> FW
+  TS -.-> PVE
+  PVE --> HAVM
+  PVE --> NPMLXC
+  PVE --> PBS
+  DOCKER --> PLEX
+  OMV --> PVE
+  OMV --> DOCKER
+  NPMLXC --> HAVM
+  NPMLXC --> PLEX
+  NUT -.-> PVE
+  NUT -.-> DOCKER
+  NUT -.-> OMV
 ```
 
-## Reading the diagram
+**Data flow (high level)**
 
-- The firewall governs crossing between network zones; lines to zones do not grant unrestricted access.
-- Unbound is shown as the firewall's local DNS service; specific DNS overrides and policies remain private.
-- Proxmox Backup Server and Restic represent **different** backup scopes; the diagram makes no claim that PBS protects bare-metal Docker data.
-- Reverse proxying selected web services and remote administration over Tailscale solve different access problems.
-- NUT is represented as host-level power monitoring, not an application container.
+1. Internet traffic enters through OPNsense; Unbound handles local DNS.
+2. The switch and UniFi carry segmented LAN traffic to compute and storage.
+3. Proxmox VE runs Home Assistant OS as a virtual machine and Nginx Proxy Manager as an LXC.
+4. Plex runs on the bare-metal Docker host.
+5. OpenMediaVault on ZFS provides shared storage and media mounts.
+6. Proxmox Backup Server receives backup jobs from the hypervisor stack.
+7. Nginx Proxy Manager fronts selected services; Tailscale provides controlled remote access.
+8. NUT monitors UPS power on the hosts — not as a Docker container.
 
-This is a conceptual map only; exact dependencies, retention settings and restore commands are maintained privately.
+Edges are product roles, not a wiring diagram of a specific rack.

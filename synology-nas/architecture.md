@@ -1,30 +1,47 @@
 # Synology NAS solution architecture (sanitized)
 
-Conceptual access-and-recovery model, not a depiction of an identifiable deployment.
+Logical layout only. No private addresses, hostnames, serials, client names, or real configs. Organization described only as a live entertainment company.
 
 ```mermaid
 flowchart TB
-  STAFF[Team members] --> ROLE[Role-appropriate access]
-  ROLE --> SHARES[DSM shared folders]
+  subgraph users [Users and admins]
+    STAFF[Staff share users]
+    ADMIN[Administrators]
+  end
 
-  ADM[Administrators] --> MFA[Administrative MFA]
-  MFA --> POLICY[Management-plane firewall policy]
-  POLICY --> DSM[DSM administration]
+  subgraph access [Access controls]
+    MFA[MFA on admin]
+    ACL[Least-privilege shares]
+    FW[NAS firewall]
+    TS[Tailscale]
+  end
 
-  REMOTE[Authorized remote users] --> TS[Tailscale access path]
-  TS --> POLICY
-  TS --> ROLE
+  subgraph nas [Synology NAS]
+    SHARES[Shared folders]
+    HB[Hyper Backup]
+  end
 
-  SHARES --> HB[Hyper Backup schedule / retention]
-  HB --> COPY[Backup destination - withheld]
-  COPY -. recovery procedure .-> RESTORE[Restore validation checkpoint]
+  subgraph verify [Verification]
+    RESTORE[Restore drills]
+  end
+
+  STAFF --> ACL
+  ADMIN --> MFA
+  MFA --> FW
+  ACL --> SHARES
+  FW --> SHARES
+  TS --> FW
+  SHARES --> HB
+  HB --> RESTORE
 ```
 
-## Control boundaries
+**Solution flow (high level)**
 
-- Staff share access and DSM administrative access are separate functions.
-- Tailscale is an access transport; it does not replace DSM permissions, MFA or firewall policy.
-- Hyper Backup configuration documents the backup process. The restore-validation checkpoint is a **required verification step**, not a claim that a drill has already passed.
-- Arrows describe responsibility and data/control flow, not actual ACLs, routes, public endpoints or site topology.
+1. Staff reach only the shares their roles require (least privilege).
+2. Administrative access requires MFA and is constrained by the NAS firewall.
+3. Tailscale provides controlled remote access without broadly exposing the management UI.
+4. Shared folders hold day-to-day data.
+5. Hyper Backup captures that data with documented retention.
+6. Restore drills confirm backups are usable, not only that jobs completed.
 
-No client or production identifiers appear here.
+This is a control and data-path sketch, not a site-specific network map.
