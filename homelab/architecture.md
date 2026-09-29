@@ -24,12 +24,10 @@ flowchart TB
 
   subgraph infra [Infrastructure services]
     UB[Unbound DNS]
-    AG[AdGuard Home]
     TS[Tailscale / remote administration]
     NPM[Nginx Proxy Manager]
   end
   FW --- UB
-  LAB --- AG
   LAB --- NPM
   TS -. controlled remote path .-> LAB
 
@@ -44,7 +42,6 @@ flowchart TB
   LAB --> DOCKER
   PVE --> HA
   PVE --> LX
-  LX --> AG
   LX --> NPM
   DOCKER --> PLEX
 
@@ -66,7 +63,7 @@ flowchart TB
 ## Reading the diagram
 
 - The firewall governs crossing between network zones; lines to zones do not grant unrestricted access.
-- Unbound and AdGuard Home are both in the DNS stack. This diagram deliberately does not assert a specific resolver-chain order.
+- Unbound is shown as the firewall's local DNS service; specific DNS overrides and policies remain private.
 - Proxmox Backup Server and Restic represent **different** backup scopes; the diagram makes no claim that PBS protects bare-metal Docker data.
 - Reverse proxying selected web services and remote administration over Tailscale solve different access problems.
 - NUT is represented as host-level power monitoring, not an application container.
