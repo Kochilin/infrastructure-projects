@@ -37,7 +37,7 @@ The project focused on the NAS's existing storage and backup role. It did not re
 
 ## Outcome and validation boundary
 
-The capstone documents a reconfiguration and hardening approach for shared storage, identity/access control, remote connectivity and backup operations on an existing NAS. The source portfolio previously described restore drills as completed; **this public case study does not claim a completed, independently verified restore test** until supporting evidence is reviewed. A configured backup job and a proven restore are different results.
+The capstone documents a reconfiguration and hardening approach for shared storage, identity/access control, remote connectivity and backup operations on an existing NAS. Backup schedules and retention were documented. Recovery procedures were included in the design; successful restore validation has not been independently verified.
 
 The public narrative is intentionally limited to technical responsibilities and design decisions; operational specifics and identifying client information are excluded.
 
