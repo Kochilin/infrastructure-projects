@@ -1,30 +1,46 @@
 # Synology NAS reconfiguration and security hardening
 
 **Period:** 2026  
-**Context:** WGU capstone for a live entertainment company (client name withheld)
-
-This case study applies the same discipline as the [homelab](../homelab/) work — inventory, least privilege, remote access without broad exposure, and backups you can restore — to a real organization's requirements on a Synology NAS.
+**Context:** Western Governors University IT capstone for a live entertainment company (client withheld)  
+[Sanitized solution architecture](architecture.md)
 
 ## Problem
 
-The NAS was in daily use for shared storage and backup, but access and hardening had drifted: share layout did not match how teams worked, permissions were broader than needed, administrative access lacked strong controls, and backup success was not proven with restore drills. Remote access risked depending on wide exposure of the management plane.
+A live-entertainment workflow depends on shared media/project storage that different teams can access without receiving unnecessary administrative privileges. The project addressed share organization, permission boundaries, administrative security, recoverable backups and remote access while retaining the existing Synology platform.
 
 ## Approach
 
-Reconfigure in place rather than replace. Align shared folders to real workflows, tighten who can do what, harden admin access (MFA and firewall), move remote access to Tailscale, and treat Hyper Backup as incomplete until a restore drill passes.
+The design prioritized improving an existing system rather than replacing functioning infrastructure: organize folders around team workflows, reduce privileges, protect administration, constrain management access, and provide remote connectivity without opening the NAS management interface broadly to the Internet.
 
-## Implementation
+## Implementation and design
 
-- Redesigned shared folder layout to match how teams actually use the system
-- Applied least-privilege share and account permissions
-- Enabled MFA on administrative access
-- Tightened the firewall on the NAS management plane
-- Introduced Tailscale for controlled remote access instead of broad exposure
-- Configured Hyper Backup with documented retention
-- Ran restore drills to verify backup usefulness, not only job success
+| Area | Work / technology |
+| --- | --- |
+| Shared storage | Synology DSM shared-folder organization aligned with team use |
+| Access control | Role-appropriate share/account permissions and administrative separation |
+| Administrative security | MFA and tighter NAS firewall controls |
+| Remote connectivity | Tailscale for controlled access |
+| Backup | Hyper Backup schedule and retention documentation |
+| Recovery | Documented restore approach and recovery considerations |
 
-Sanitized diagram: [`architecture.md`](architecture.md).
+The project focused on the NAS's existing storage and backup role. It did not require replacing it with a new vendor platform or exposing the DSM management interface through generic Internet port forwarding.
 
-## Outcome
+## Engineering decisions illustrated
 
-A hardened Synology NAS aligned to organizational use: clearer shares, least-privilege access, MFA-protected admin paths, management plane not broadly exposed, Tailscale-based remote access, and backup design that includes a tested restore path. Client name and environment specifics stay out of this write-up by design.
+**Workflow before folder structure.** Organizing shares by how people actually exchange and maintain project assets reduces permission sprawl and simplifies ownership of data.
+
+**Separate administrative and everyday access.** Staff need the relevant shares, not a privileged management session. MFA and firewall restrictions add controls to administrative access.
+
+**Remote access without blanket exposure.** Tailscale provides a managed access path instead of making the NAS management interface generally Internet-facing.
+
+**Backup completion is not recovery proof.** Hyper Backup jobs and retention establish the backup design; a separate restore check is needed to establish recoverability.
+
+## Outcome and validation boundary
+
+The capstone documents a reconfiguration and hardening approach for shared storage, identity/access control, remote connectivity and backup operations on an existing NAS. The source portfolio previously described restore drills as completed; **this public case study does not claim a completed, independently verified restore test** until supporting evidence is reviewed. A configured backup job and a proven restore are different results.
+
+The public narrative is intentionally limited to technical responsibilities and design decisions; operational specifics and identifying client information are excluded.
+
+## Publication boundary
+
+No client name, site details, real configurations, private addresses, device names, serial numbers, screenshots of access settings, credentials or backup destinations are published.
