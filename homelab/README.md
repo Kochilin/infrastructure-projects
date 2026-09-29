@@ -18,7 +18,7 @@ I treated the homelab as a small infrastructure environment instead of a collect
 | --- | --- |
 | Routing and segmentation | OPNsense firewall; separate network zones and inter-zone policy |
 | Switching and wireless | Cisco SG350 managed switching and UniFi access points |
-| DNS | Unbound on OPNsense and an AdGuard Home service |
+| DNS | Unbound on OPNsense |
 | Virtualization | Proxmox VE for virtual machines and LXC services |
 | VM/LXC backup | Proxmox Backup Server on a separate system |
 | Shared storage | OpenMediaVault on Debian with ZFS mirrored storage |
@@ -30,7 +30,7 @@ I treated the homelab as a small infrastructure environment instead of a collect
 
 **Network design.** I use distinct zones for management, trusted devices, IoT, guest traffic and lab workloads, with the firewall controlling permitted crossings. Managed switching and wireless carry the relevant networks; DNS and remote connectivity are explicit infrastructure services rather than incidental application settings.
 
-**Workload placement.** Proxmox hosts VM and LXC workloads, including Home Assistant OS and infrastructure services such as Nginx Proxy Manager and AdGuard Home. A separate Docker Compose host runs the media/application stack. This separates the hypervisor's lifecycle from the larger container workload.
+**Workload placement.** Proxmox hosts VM and LXC workloads, including Home Assistant OS and infrastructure services such as Nginx Proxy Manager. A separate Docker Compose host runs the media/application stack. This separates the hypervisor's lifecycle from the larger container workload.
 
 **Storage and recovery.** OpenMediaVault provides ZFS-backed storage consumed by other systems. Proxmox Backup Server receives scheduled VM/LXC backups; the Docker host has a separate Restic backup schedule and retention policy. The recovery model therefore distinguishes restoring hypervisor workloads, application data and storage instead of implying PBS backs up everything.
 
@@ -38,7 +38,7 @@ I treated the homelab as a small infrastructure environment instead of a collect
 
 ## Engineering decisions illustrated
 
-- Use dedicated backup infrastructure rather than depend on the production hypervisor as the only recovery location.
+- Use dedicated backup infrastructure rather than depend on the primary Proxmox host as the only recovery location.
 - Use different backup mechanisms for Proxmox workloads and Docker-host application data.
 - Keep network segmentation and the remote-access path separate from application-level reverse proxying.
 - Document logical dependencies so an outage can be diagnosed or rebuilt in an understandable order.
